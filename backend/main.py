@@ -1,5 +1,10 @@
 # Promptect API - Backend completo con email de bienvenida (SendGrid)
+from routes import dashboard_data
+from routes import recent_events
+app.include_router(recent_events.router)
 
+
+app.include_router(dashboard_data.router)
 from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
