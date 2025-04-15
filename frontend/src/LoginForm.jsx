@@ -1,5 +1,7 @@
-// src/LoginForm.jsx
 import React, { useState } from "react";
+
+// ✅ Obtenemos la URL del backend desde la variable de entorno
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 export default function LoginForm({ onLogin }) {
   const [email, setEmail] = useState("");
@@ -9,9 +11,7 @@ export default function LoginForm({ onLogin }) {
   const [error, setError] = useState(null);
   const [message, setMessage] = useState(null);
 
-  const validateEmail = (email) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  };
+  const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -30,8 +30,8 @@ export default function LoginForm({ onLogin }) {
     setLoading(true);
 
     const url = isRegister
-      ? "http://localhost:8000/register"
-      : "http://localhost:8000/login";
+      ? `${BASE_URL}/register`
+      : `${BASE_URL}/login`;
 
     const body = isRegister
       ? JSON.stringify({ email, password })
