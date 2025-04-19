@@ -1,10 +1,3 @@
-# Promptect API - Backend completo con email de bienvenida (SendGrid)
-from routes import dashboard_data
-from routes import recent_events
-app.include_router(recent_events.router)
-
-
-app.include_router(dashboard_data.router)
 from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -24,20 +17,23 @@ import uuid
 import datetime
 import os
 
+# 🔐 Cargar variables de entorno
 load_dotenv()
 
-# Configuración
 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "mysecretkey")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
-
 MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
 MONGO_DB = os.getenv("MONGO_DB", "promptect")
+FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN", "http://localhost:5173")
+
+# 📦 Conexión MongoDB
 client = MongoClient(MONGO_URI)
 db = client[MONGO_DB]
 users_collection = db.users
 history_collection = db.analysis_history
 
+# 🚀 Inicializar FastAPI
 app = FastAPI(
     title="Promptect API",
     version="1.0.0",
@@ -45,17 +41,27 @@ app = FastAPI(
     redoc_url=None,
     openapi_url=None
 )
+
+# 🌐 Middleware CORS corregido
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[FRONTEND_ORIGIN],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
+# 📂 Routers externos
+from routes import dashboard_data
+from routes import recent_events
+app.include_router(dashboard_data.router)
+app.include_router(recent_events.router)
 
+# 🔒 Seguridad
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+# 📦 Modelos
 class PromptRequest(BaseModel):
     prompt: str
 
@@ -75,8 +81,7 @@ class Token(BaseModel):
     access_token: str
     token_type: str
 
-# Funciones de seguridad y token
-
+# 🔐 Funciones de autenticación
 def verify_password(plain, hashed):
     return pwd_context.verify(plain, hashed)
 
@@ -103,15 +108,14 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
         raise credentials_exception
     return str(user["_id"])
 
-# ✉️ Enviar email de bienvenida
-
+# 📧 Email de bienvenida
 def send_welcome_email(to_email):
     try:
         message = Mail(
             from_email=os.getenv("EMAIL_FROM"),
             to_emails=to_email,
             subject="🎉 ¡Bienvenido a Promptect!",
-            html_content=f"""
+            html_content="""
             <p>Hola 👋,</p>
             <p>Gracias por registrarte en <strong>Promptect</strong>.</p>
             <p>Tu cuenta ha sido creada exitosamente y ya podés comenzar a analizar tus prompts de forma segura.</p>
@@ -124,7 +128,8 @@ def send_welcome_email(to_email):
     except Exception as e:
         print("Error al enviar email:", e)
 
-# 🔐 Registro
+# ✅ Endpoints
+
 @app.post("/register", response_model=Token)
 def register(user: UserCreate):
     if users_collection.find_one({"email": user.email}):
@@ -136,7 +141,6 @@ def register(user: UserCreate):
     access_token = create_access_token(data={"sub": str(result.inserted_id)})
     return {"access_token": access_token, "token_type": "bearer"}
 
-# 🔐 Login
 @app.post("/login", response_model=Token)
 def login(form_data: OAuth2PasswordRequestForm = Depends()):
     user = users_collection.find_one({"email": form_data.username})
@@ -145,7 +149,6 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
     access_token = create_access_token(data={"sub": str(user["_id"])})
     return {"access_token": access_token, "token_type": "bearer"}
 
-# 🧠 Reglas de seguridad
 INJECTION_PATTERNS = [
     r"(?i)ignore previous instructions",
     r"(?i)you are now",
@@ -155,15 +158,14 @@ INJECTION_PATTERNS = [
 ]
 
 SENSITIVE_PATTERNS = [
-    r"\b\d{16}\b",
-    r"\b\d{9,11}\b",
+    r"\b\d{16}\b",  # tarjetas
+    r"\b\d{9,11}\b",  # DNI
     r"(?i)password",
     r"(?i)secret",
     r"(?i)api[_-]?key",
-    r"(?i)token",
+    r"(?i)token"
 ]
 
-# 📤 Análisis
 @app.post("/analyze", response_model=RiskResponse)
 def analyze_prompt(data: PromptRequest, user_id: str = Depends(get_current_user)):
     issues = []
@@ -197,19 +199,16 @@ def analyze_prompt(data: PromptRequest, user_id: str = Depends(get_current_user)
     history_collection.insert_one(record)
     return RiskResponse(**record)
 
-# 📜 Historial
 @app.get("/history", response_model=List[RiskResponse])
 def get_history(user_id: str = Depends(get_current_user)):
     docs = history_collection.find({"user_id": user_id}).sort("timestamp", -1)
     return [RiskResponse(**doc) for doc in docs]
 
-# 👤 Info de usuario
 @app.get("/userinfo")
 def get_user_info(user_id: str = Depends(get_current_user)):
     user = users_collection.find_one({"_id": ObjectId(user_id)})
     return {"email": user["email"]}
 
-# 🔐 Documentación protegida
 @app.get("/docs", include_in_schema=False)
 def custom_docs(user_id: str = Depends(get_current_user)):
     return get_swagger_ui_html(openapi_url="/openapi.json", title="Promptect Docs")
