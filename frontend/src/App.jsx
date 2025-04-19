@@ -1,7 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Landing from "./pages/landing";
-import LoginForm from "./LoginForm"; // si ya lo tienes
-// import RegisterForm from "./RegisterForm"; // si lo generamos después
+import LoginForm from "./LoginForm";
 
 function App() {
   return (
@@ -9,12 +8,11 @@ function App() {
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<LoginForm />} />
-        {/* <Route path="/register" element={<RegisterForm />} /> */}
+        <Route path="/register" element={<LoginForm />} /> {/* reutilizamos el mismo */}
       </Routes>
     </Router>
   );
 }
 
 export default App;
-
 

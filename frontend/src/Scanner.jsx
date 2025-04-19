@@ -1,5 +1,6 @@
-// src/Scanner.jsx
 import React, { useEffect, useState } from "react";
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function Scanner({ token, onLogout }) {
   const [prompt, setPrompt] = useState("");
@@ -13,7 +14,7 @@ export default function Scanner({ token, onLogout }) {
 
   const fetchUserEmail = async () => {
     try {
-      const res = await fetch("http://localhost:8000/userinfo", {
+      const res = await fetch(`${API_URL}/userinfo`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -25,7 +26,7 @@ export default function Scanner({ token, onLogout }) {
 
   const fetchHistory = async () => {
     try {
-      const res = await fetch("http://localhost:8000/history", {
+      const res = await fetch(`${API_URL}/history`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -58,7 +59,7 @@ export default function Scanner({ token, onLogout }) {
     setLoading(true);
     setResult(null);
     try {
-      const res = await fetch("http://localhost:8000/analyze", {
+      const res = await fetch(`${API_URL}/analyze`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -167,3 +168,4 @@ export default function Scanner({ token, onLogout }) {
     </div>
   );
 }
+
