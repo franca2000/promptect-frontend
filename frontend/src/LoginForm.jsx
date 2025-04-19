@@ -1,15 +1,23 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 
-// ✅ Obtenemos la URL del backend desde la variable de entorno
 const BASE_URL = import.meta.env.VITE_API_URL;
 
 export default function LoginForm({ onLogin }) {
+  const location = useLocation();
+  const isRegisterRoute = location.pathname === "/register";
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isRegister, setIsRegister] = useState(false);
+  const [isRegister, setIsRegister] = useState(isRegisterRoute);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [message, setMessage] = useState(null);
+
+  useEffect(() => {
+    // Si el usuario navega entre /login y /register con el mismo componente montado
+    setIsRegister(isRegisterRoute);
+  }, [isRegisterRoute]);
 
   const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
@@ -109,3 +117,4 @@ export default function LoginForm({ onLogin }) {
     </div>
   );
 }
+

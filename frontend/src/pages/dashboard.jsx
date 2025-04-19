@@ -13,6 +13,8 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 export default function Dashboard() {
   const [data, setData] = useState({
     reports: 0,
@@ -28,7 +30,7 @@ export default function Dashboard() {
       try {
         setLoading(true);
         const token = localStorage.getItem("token");
-        const res = await fetch(`http://localhost:8000/dashboard-data?range=${range}`, {
+        const res = await fetch(`${API_URL}/dashboard-data?range=${range}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -70,7 +72,9 @@ export default function Dashboard() {
             <section className="grid md:grid-cols-3 gap-6 mb-10">
               <div className="bg-white p-6 rounded-2xl shadow hover:shadow-md transition">
                 <h2 className="text-lg font-semibold mb-2">Últimos análisis</h2>
-                <p className="text-sm text-gray-600">{data.reports} reportes en los últimos {range} días</p>
+                <p className="text-sm text-gray-600">
+                  {data.reports} reportes en los últimos {range} días
+                </p>
               </div>
 
               <div className="bg-white p-6 rounded-2xl shadow hover:shadow-md transition">
@@ -80,19 +84,28 @@ export default function Dashboard() {
 
               <div className="bg-white p-6 rounded-2xl shadow hover:shadow-md transition">
                 <h2 className="text-lg font-semibold mb-2">Activaciones recientes</h2>
-                <p className="text-sm text-gray-600">{data.newUsers} nuevos usuarios en los últimos {range} días</p>
+                <p className="text-sm text-gray-600">
+                  {data.newUsers} nuevos usuarios en los últimos {range} días
+                </p>
               </div>
             </section>
 
             <section className="bg-white p-6 rounded-2xl shadow">
-              <h2 className="text-xl font-semibold mb-4">Riesgos detectados en los últimos {range} días</h2>
+              <h2 className="text-xl font-semibold mb-4">
+                Riesgos detectados en los últimos {range} días
+              </h2>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="day" />
                   <YAxis allowDecimals={false} />
                   <Tooltip />
-                  <Line type="monotone" dataKey="riesgos" stroke="#ef4444" strokeWidth={2} />
+                  <Line
+                    type="monotone"
+                    dataKey="riesgos"
+                    stroke="#ef4444"
+                    strokeWidth={2}
+                  />
                 </LineChart>
               </ResponsiveContainer>
             </section>
@@ -110,3 +123,4 @@ export default function Dashboard() {
     </div>
   );
 }
+

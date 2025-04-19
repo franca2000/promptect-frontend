@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 export default function RecentEvents() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -8,7 +10,7 @@ export default function RecentEvents() {
     const fetchEvents = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await fetch("http://localhost:8000/recent-events", {
+        const res = await fetch(`${API_URL}/recent-events`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
