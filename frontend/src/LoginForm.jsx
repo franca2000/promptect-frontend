@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
 export default function LoginForm({ onLogin }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const isRegisterRoute = location.pathname === "/register";
 
   const [email, setEmail] = useState("");
@@ -15,7 +16,6 @@ export default function LoginForm({ onLogin }) {
   const [message, setMessage] = useState(null);
 
   useEffect(() => {
-    // Si el usuario navega entre /login y /register con el mismo componente montado
     setIsRegister(isRegisterRoute);
   }, [isRegisterRoute]);
 
@@ -38,8 +38,8 @@ export default function LoginForm({ onLogin }) {
     setLoading(true);
 
     const url = isRegister
-      ? `${BASE_URL}/register`
-      : `${BASE_URL}/login`;
+      ? `${BASE_URL}/auth/register`
+      : `${BASE_URL}/auth/login`;
 
     const body = isRegister
       ? JSON.stringify({ email, password })
@@ -59,7 +59,14 @@ export default function LoginForm({ onLogin }) {
       const data = await res.json();
       if (res.ok && data.access_token) {
         setMessage(isRegister ? "Account created successfully!" : "Login successful!");
-        setTimeout(() => onLogin(data.access_token), 1000);
+
+        // Guardar token y redirigir
+        localStorage.setItem("access_token", data.access_token);
+        onLogin && onLogin(data.access_token);
+
+        setTimeout(() => {
+          navigate("/dashboard");
+        }, 1000);
       } else {
         setError(data.detail || "Authentication failed");
       }
