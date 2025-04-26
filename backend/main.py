@@ -1,6 +1,6 @@
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 from routes import dashboard_data, recent_events, auth
+from fastapi.middleware.cors import CORSMiddleware
 
 import os
 from dotenv import load_dotenv
